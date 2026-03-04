@@ -1,0 +1,18 @@
+.env
+.DS_Store
+
+# Python cache/build
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+
+# Virtual environment
+.venv/
+venv/
+
+# Runtime/process artifacts
+.sync.pid
+nohup.out
