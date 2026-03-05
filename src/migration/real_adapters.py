@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import random
 import threading
 import time
@@ -350,6 +351,10 @@ class LarkApiClient:
         self._multipart_lock = threading.Lock()
         self._lark_access_token = config.lark_access_token
         self._lark_token_lock = threading.Lock()
+        # Large one-shot upload_all calls are more likely to timeout on unstable links.
+        # Route larger files directly to multipart flow for better resilience.
+        threshold_mb = int(os.getenv("LARK_MULTIPART_THRESHOLD_MB", "32"))
+        self._multipart_threshold_bytes = max(1, threshold_mb) * 1024 * 1024
 
     def _refresh_lark_access_token(self) -> str:
         with self._lark_token_lock:
@@ -441,6 +446,23 @@ class LarkApiClient:
         resume_token: str | None = None,
     ) -> TransferResult:
         data = b"".join(chunks)
+        if len(data) >= self._multipart_threshold_bytes:
+            result = self._multipart_upload_file(
+                object_name=object_name,
+                parent_lark_folder_id=parent_lark_folder_id,
+                data=data,
+            )
+            obj = result.get("data", {})
+            lark_object_id = obj.get("file_token") or obj.get("id") or f"lark-{object_name}"
+            lark_url = obj.get("url") or self._build_file_url(lark_object_id)
+            return TransferResult(
+                object_id=object_name,
+                lark_object_id=lark_object_id,
+                lark_url=lark_url,
+                bytes_copied=len(data),
+                checksum=None,
+            )
+
         url = f"{self.cfg.lark_api_base_url}/drive/v1/files/upload_all"
         primary_fields = {
             "file_name": object_name,

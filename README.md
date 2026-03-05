@@ -16,6 +16,15 @@ pip install -e .
 drive-migrate --concurrency 16 --mapping-out reports/mappings.csv
 ```
 
+```
+bash vps_sync.sh prepare
+bash vps_sync.sh start 4
+bash vps_sync.sh status
+bash vps_sync.sh logs
+
+bash vps_sync.sh stop
+```
+
 ## Required Environment Variables
 
 - One Google auth option:
@@ -63,4 +72,3 @@ Rows are appended after each folder/file is created:
   - `auto` (default): user token -> access token -> tenant token
   - `user`: require `LARK_USER_ACCESS_TOKEN`
   - `tenant`: require app credentials (or `LARK_ACCESS_TOKEN`)
-

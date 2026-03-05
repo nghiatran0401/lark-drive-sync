@@ -4,6 +4,7 @@ import asyncio
 import contextlib
 import csv
 import random
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Protocol
@@ -400,6 +401,12 @@ class SimpleSyncEngine:
         file_obj: DriveObject,
         parent_lark_id: str,
     ) -> int | None:
+        started = time.monotonic()
+        self._log(
+            f"upload start: drive_file_id={file_obj.object_id} "
+            f"name={file_obj.name!r} size_mb={file_obj.size_bytes / (1024 * 1024):.1f}"
+        )
+
         def _upload() -> TransferResult:
             return self.lark_client.upload_file_to_folder(
                 file_obj.name,
@@ -424,6 +431,11 @@ class SimpleSyncEngine:
                     google_url=file_obj.web_view_link,
                     lark_object_id=result.lark_object_id,
                     lark_url=result.lark_url,
+                )
+                elapsed = time.monotonic() - started
+                self._log(
+                    f"upload done: drive_file_id={file_obj.object_id} "
+                    f"elapsed_s={elapsed:.1f} bytes={result.bytes_copied}"
                 )
                 return result.bytes_copied
             except Exception as exc:  # noqa: BLE001
