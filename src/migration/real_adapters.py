@@ -75,6 +75,11 @@ def _http_json(
                 auth_token = token_refresher()
                 refreshed = True
                 continue
+            if exc.code == 99991663 and "larksuite.com" in url:
+                raise AuthTokenError(
+                    "Lark token invalid (code 99991663) after refresh attempt. "
+                    "Verify LARK_APP_ID/LARK_APP_SECRET and LARK_TOKEN_MODE."
+                ) from exc
             raise
         except LarkRetryableError:
             if attempt >= retries:
@@ -98,6 +103,21 @@ def _http_json(
                     ) from exc
             err = _parse_lark_http_error(exc, url)
             if err is not None:
+                if (
+                    isinstance(err, LarkApiError)
+                    and err.code == 99991663
+                    and "larksuite.com" in url
+                    and token_refresher is not None
+                    and not refreshed
+                ):
+                    auth_token = token_refresher()
+                    refreshed = True
+                    continue
+                if isinstance(err, LarkApiError) and err.code == 99991663 and "larksuite.com" in url:
+                    raise AuthTokenError(
+                        "Lark token invalid (code 99991663) after refresh attempt. "
+                        "Verify LARK_APP_ID/LARK_APP_SECRET and LARK_TOKEN_MODE."
+                    ) from err
                 if isinstance(err, LarkRetryableError) and attempt < retries:
                     pass
                 else:
@@ -164,6 +184,11 @@ def _http_multipart(
                 auth_token = token_refresher()
                 refreshed = True
                 continue
+            if exc.code == 99991663 and "larksuite.com" in url:
+                raise AuthTokenError(
+                    "Lark token invalid (code 99991663) after refresh attempt. "
+                    "Verify LARK_APP_ID/LARK_APP_SECRET and LARK_TOKEN_MODE."
+                ) from exc
             raise
         except LarkRetryableError:
             if attempt >= retries:
@@ -186,6 +211,21 @@ def _http_multipart(
                     ) from exc
             err = _parse_lark_http_error(exc, url)
             if err is not None:
+                if (
+                    isinstance(err, LarkApiError)
+                    and err.code == 99991663
+                    and "larksuite.com" in url
+                    and token_refresher is not None
+                    and not refreshed
+                ):
+                    auth_token = token_refresher()
+                    refreshed = True
+                    continue
+                if isinstance(err, LarkApiError) and err.code == 99991663 and "larksuite.com" in url:
+                    raise AuthTokenError(
+                        "Lark token invalid (code 99991663) after refresh attempt. "
+                        "Verify LARK_APP_ID/LARK_APP_SECRET and LARK_TOKEN_MODE."
+                    ) from err
                 if isinstance(err, LarkRetryableError) and attempt < retries:
                     pass
                 else:
@@ -370,6 +410,7 @@ class LarkApiClient:
             except ValueError as exc:
                 raise AuthTokenError(str(exc)) from exc
             self._lark_access_token = token
+            print("[progress] auth: lark token refreshed", flush=True)
             return token
 
     def _build_file_url(self, file_token: str) -> str:

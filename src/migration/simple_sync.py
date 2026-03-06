@@ -117,6 +117,16 @@ class FailedCsvWriter:
             with self.output_path.open("w", newline="", encoding="utf-8") as f:
                 writer = csv.writer(f)
                 writer.writerow(["account_id", "google_object_id", "google_url", "reason"])
+        self._load_existing_failures()
+
+    def _load_existing_failures(self) -> None:
+        with self.output_path.open("r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                google_object_id = (row.get("google_object_id") or "").strip()
+                reason = (row.get("reason") or "").strip()
+                if google_object_id and reason:
+                    self._seen.add((google_object_id, reason))
 
     async def append(self, *, account_id: str, google_object_id: str, google_url: str, reason: str) -> None:
         key = (google_object_id, reason)
