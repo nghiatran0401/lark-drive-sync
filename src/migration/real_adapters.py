@@ -313,7 +313,12 @@ class GoogleDriveApiClient:
             while True:
                 params = {
                     "q": f"'{parent_id}' in parents and trashed = false",
-                    "fields": "nextPageToken,files(id,name,mimeType,md5Checksum,size,modifiedTime,owners(emailAddress),webViewLink)",
+                    "fields": (
+                        "nextPageToken,"
+                        "files("
+                        "id,name,mimeType,md5Checksum,size,modifiedTime,"
+                        "owners(emailAddress),webViewLink,folderColorRgb)"
+                    ),
                     "supportsAllDrives": "true",
                     "includeItemsFromAllDrives": "true",
                     "pageSize": "1000",
@@ -346,6 +351,7 @@ class GoogleDriveApiClient:
                         web_view_link=item.get("webViewLink", f"https://drive.google.com/file/d/{obj_id}/view"),
                         is_folder=is_folder,
                         is_google_native=mime_type.startswith("application/vnd.google-apps."),
+                        folder_color_rgb=item.get("folderColorRgb"),
                     )
                 page_token = payload.get("nextPageToken")
                 if not page_token:
@@ -377,6 +383,16 @@ class GoogleDriveApiClient:
                     ) from exc
                 details = _read_http_error_body(exc)
                 raise RuntimeError(f"Google Drive API HTTP {exc.code} GET {url}: {details}") from exc
+
+    def trash_object(self, object_id: str) -> None:
+        url = f"{self.cfg.google_api_base_url}/files/{object_id}?supportsAllDrives=true"
+        _http_json(
+            "PATCH",
+            url,
+            self._google_access_token,
+            payload={"trashed": True},
+            token_refresher=self._refresh_google_access_token,
+        )
 
 class LarkApiClient:
     """Lark API integration for folder creation and file upload.

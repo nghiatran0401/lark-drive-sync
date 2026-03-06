@@ -72,3 +72,63 @@ Rows are appended after each folder/file is created:
   - `auto` (default): user token -> access token -> tenant token
   - `user`: require `LARK_USER_ACCESS_TOKEN`
   - `tenant`: require app credentials (or `LARK_ACCESS_TOKEN`)
+
+## Post-Migration Cleanup (Google Drive)
+
+Use this flow only after sync summary is stable and unresolved failures are reviewed.
+
+1) Build unresolved failed list:
+
+```bash
+python3 - <<'PY'
+import csv
+from pathlib import Path
+m=set()
+for r in csv.DictReader(Path("reports/mappings.csv").open("r", encoding="utf-8", newline="")):
+    gid=(r.get("google_object_id") or "").strip()
+    if gid:
+        m.add(gid)
+rows=[]
+for r in csv.DictReader(Path("reports/failed_items.csv").open("r", encoding="utf-8", newline="")):
+    gid=(r.get("google_object_id") or "").strip()
+    if gid and gid not in m:
+        rows.append(r)
+out=Path("reports/unresolved_failed_items.csv")
+with out.open("w", encoding="utf-8", newline="") as f:
+    w=csv.DictWriter(f, fieldnames=["account_id","google_object_id","google_url","reason"])
+    w.writeheader(); w.writerows(rows)
+print("wrote", out, "rows", len(rows))
+PY
+```
+
+2) Export safe delete candidates (protect unresolved + colored folders and descendants):
+
+```bash
+PYTHONPATH=src python3 -m migration.export_delete_candidates \
+  --mapping reports/mappings.csv \
+  --unresolved reports/unresolved_failed_items.csv \
+  --out-candidates reports/delete_candidates.csv \
+  --out-exclusions reports/delete_exclusions.csv \
+  --out-colored reports/colored_folders.csv
+```
+
+3) Dry-run delete batch:
+
+```bash
+PYTHONPATH=src python3 -m migration.trash_google_batches \
+  --input reports/delete_candidates.csv \
+  --offset 0 \
+  --batch-size 500 \
+  --dry-run
+```
+
+4) Execute batch (move to Trash):
+
+```bash
+PYTHONPATH=src python3 -m migration.trash_google_batches \
+  --input reports/delete_candidates.csv \
+  --offset 0 \
+  --batch-size 500
+```
+
+5) Repeat with increasing `--offset` in phases. Keep `reports/delete_batches_log.csv` as the audit trail.

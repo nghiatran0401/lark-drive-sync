@@ -26,6 +26,7 @@ class DriveObject:
     web_view_link: str
     is_folder: bool
     is_google_native: bool
+    folder_color_rgb: Optional[str] = None
 
 
 @dataclass(frozen=True)
