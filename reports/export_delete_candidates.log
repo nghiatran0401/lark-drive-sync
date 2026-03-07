@@ -1,0 +1,4 @@
+nohup: ignoring input
+delete candidates written: reports/delete_candidates.csv (718 rows)
+delete exclusions written: reports/delete_exclusions.csv (97095 rows)
+colored folders written: reports/colored_folders.csv (6225 rows)
