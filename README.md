@@ -101,15 +101,14 @@ print("wrote", out, "rows", len(rows))
 PY
 ```
 
-2) Export safe delete candidates (protect unresolved + colored folders and descendants):
+2) Export safe delete candidates (exclude unresolved failures):
 
 ```bash
 PYTHONPATH=src python3 -m migration.export_delete_candidates \
   --mapping reports/mappings.csv \
   --unresolved reports/unresolved_failed_items.csv \
   --out-candidates reports/delete_candidates.csv \
-  --out-exclusions reports/delete_exclusions.csv \
-  --out-colored reports/colored_folders.csv
+  --out-exclusions reports/delete_exclusions.csv
 ```
 
 3) Dry-run delete batch:
@@ -122,13 +121,24 @@ PYTHONPATH=src python3 -m migration.trash_google_batches \
   --dry-run
 ```
 
-4) Execute batch (move to Trash):
+4) Optional strict verification gate before trash:
+
+```bash
+PYTHONPATH=src python3 -m migration.verify_before_trash \
+  --input reports/delete_candidates.csv \
+  --verified-out reports/verified_ok.csv \
+  --failed-out reports/verification_failed.csv
+```
+
+If used, run trash batches against `reports/verified_ok.csv`.
+
+5) Execute batch (move to Trash):
 
 ```bash
 PYTHONPATH=src python3 -m migration.trash_google_batches \
-  --input reports/delete_candidates.csv \
+  --input reports/verified_ok.csv \
   --offset 0 \
   --batch-size 500
 ```
 
-5) Repeat with increasing `--offset` in phases. Keep `reports/delete_batches_log.csv` as the audit trail.
+6) Repeat with increasing `--offset` in phases. Keep `reports/delete_batches_log.csv` as the audit trail.

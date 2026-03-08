@@ -1,0 +1,7 @@
+<stdin>:12: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+[2026-03-08T14:11:44.578935] runner start total=97428 batch_size=500 start_offset=500
+<stdin>:21: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+[2026-03-08T14:11:44.579168] running offset=500
+Batch complete offset=500 end=1000 success=497 failed=3 log=reports/delete_batches_log.csv
+<stdin>:21: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+[2026-03-08T14:21:00.027093] running offset=1000

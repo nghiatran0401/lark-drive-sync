@@ -317,7 +317,7 @@ class GoogleDriveApiClient:
                         "nextPageToken,"
                         "files("
                         "id,name,mimeType,md5Checksum,size,modifiedTime,"
-                        "owners(emailAddress),webViewLink,folderColorRgb)"
+                        "owners(emailAddress),webViewLink)"
                     ),
                     "supportsAllDrives": "true",
                     "includeItemsFromAllDrives": "true",
@@ -351,7 +351,6 @@ class GoogleDriveApiClient:
                         web_view_link=item.get("webViewLink", f"https://drive.google.com/file/d/{obj_id}/view"),
                         is_folder=is_folder,
                         is_google_native=mime_type.startswith("application/vnd.google-apps."),
-                        folder_color_rgb=item.get("folderColorRgb"),
                     )
                 page_token = payload.get("nextPageToken")
                 if not page_token:
@@ -391,6 +390,19 @@ class GoogleDriveApiClient:
             url,
             self._google_access_token,
             payload={"trashed": True},
+            token_refresher=self._refresh_google_access_token,
+        )
+
+    def get_object_metadata(self, object_id: str) -> dict:
+        url = (
+            f"{self.cfg.google_api_base_url}/files/{object_id}"
+            "?supportsAllDrives=true"
+            "&fields=id,name,size,mimeType,modifiedTime,trashed"
+        )
+        return _http_json(
+            "GET",
+            url,
+            self._google_access_token,
             token_refresher=self._refresh_google_access_token,
         )
 
@@ -638,6 +650,28 @@ class LarkApiClient:
                 token_refresher=self._refresh_lark_access_token,
             )
             return finish
+
+    def get_file_metadata(self, file_token: str) -> dict:
+        endpoints = [
+            f"{self.cfg.lark_api_base_url}/drive/v1/files/{file_token}",
+            f"{self.cfg.lark_api_base_url}/drive/v1/files/{file_token}/meta",
+        ]
+        last_exc: Exception | None = None
+        for url in endpoints:
+            try:
+                payload = _http_json(
+                    "GET",
+                    url,
+                    self._lark_access_token,
+                    token_refresher=self._refresh_lark_access_token,
+                )
+                return payload.get("data", {}) or {}
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                continue
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError(f"Unable to fetch Lark metadata for file token: {file_token}")
 
 def _parse_rfc3339(value: str | None) -> datetime:
     if not value:

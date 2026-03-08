@@ -3,11 +3,11 @@ from __future__ import annotations
 import argparse
 import csv
 import os
+import unicodedata
 from collections import defaultdict, deque
 from pathlib import Path
 
 from .config import load_dotenv_if_present, load_real_integration_config, load_single_account_from_env
-from .models import DriveObject
 from .real_adapters import GoogleDriveApiClient
 
 
@@ -33,24 +33,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-exclusions",
         default="reports/delete_exclusions.csv",
-        help="Output CSV for excluded/protected IDs",
+        help="Output CSV for excluded IDs (currently unresolved failures only)",
     )
     parser.add_argument(
-        "--out-colored",
-        default="reports/colored_folders.csv",
-        help="Output CSV for colored folders discovered in Drive",
+        "--protect-folder-name",
+        action="append",
+        default=[],
+        help="Folder name to protect (exclude folder and all descendants). Can repeat.",
     )
     parser.add_argument(
-        "--include-colored-protection",
-        action="store_true",
-        default=True,
-        help="Protect colored folders and all descendants (default: enabled)",
-    )
-    parser.add_argument(
-        "--no-colored-protection",
-        dest="include_colored_protection",
-        action="store_false",
-        help="Disable colored-folder protection",
+        "--protect-folder-names-file",
+        default="reports/protected_folder_names.txt",
+        help="Optional text file with one protected folder name per line.",
     )
     return parser.parse_args()
 
@@ -89,49 +83,6 @@ def _load_unresolved_ids(path: Path) -> set[str]:
     return ids
 
 
-def _crawl_drive_tree(source: GoogleDriveApiClient) -> tuple[dict[str, DriveObject], dict[str, list[str]]]:
-    account = load_single_account_from_env()
-    objects: dict[str, DriveObject] = {}
-    children: dict[str, list[str]] = defaultdict(list)
-    for obj in source.list_objects_recursive(account):
-        objects[obj.object_id] = obj
-        parent = (obj.parent_id or "").strip()
-        if parent:
-            children[parent].append(obj.object_id)
-    return objects, children
-
-
-def _collect_colored_subtree(
-    objects: dict[str, DriveObject],
-    children: dict[str, list[str]],
-) -> tuple[set[str], list[dict[str, str]]]:
-    colored_roots = [obj for obj in objects.values() if obj.is_folder and (obj.folder_color_rgb or "").strip()]
-    protected_ids: set[str] = set()
-    q: deque[str] = deque()
-    for obj in colored_roots:
-        q.append(obj.object_id)
-    while q:
-        current = q.popleft()
-        if current in protected_ids:
-            continue
-        protected_ids.add(current)
-        for child in children.get(current, []):
-            q.append(child)
-
-    colored_rows: list[dict[str, str]] = []
-    for obj in colored_roots:
-        colored_rows.append(
-            {
-                "google_folder_id": obj.object_id,
-                "google_folder_name": obj.name,
-                "google_folder_color_rgb": (obj.folder_color_rgb or "").strip(),
-                "google_folder_url": obj.web_view_link,
-            }
-        )
-    colored_rows.sort(key=lambda r: (r["google_folder_name"].lower(), r["google_folder_id"]))
-    return protected_ids, colored_rows
-
-
 def _write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
@@ -140,28 +91,81 @@ def _write_csv(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) ->
         writer.writerows(rows)
 
 
+def _normalize_name(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFC", value).strip().casefold().split())
+
+
+def _load_protected_names(args: argparse.Namespace) -> set[str]:
+    names = {_normalize_name(n) for n in (args.protect_folder_name or []) if n.strip()}
+    file_path = Path(args.protect_folder_names_file)
+    if file_path.exists():
+        for raw in file_path.read_text(encoding="utf-8").splitlines():
+            name = raw.strip()
+            if not name or name.startswith("#"):
+                continue
+            names.add(_normalize_name(name))
+    return names
+
+
+def _collect_protected_subtree_ids(protected_names: set[str]) -> tuple[set[str], int]:
+    if not protected_names:
+        return set(), 0
+
+    cfg = load_real_integration_config()
+    account = load_single_account_from_env()
+    source = GoogleDriveApiClient(cfg)
+
+    objects: dict[str, tuple[str, bool]] = {}
+    children: dict[str, list[str]] = defaultdict(list)
+    scanned = 0
+    for obj in source.list_objects_recursive(account):
+        scanned += 1
+        if scanned == 1 or scanned % 2000 == 0:
+            print(f"[progress] protected-scan: scanned={scanned}", flush=True)
+        objects[obj.object_id] = (obj.name, obj.is_folder)
+        parent = (obj.parent_id or "").strip()
+        if parent:
+            children[parent].append(obj.object_id)
+    print(f"[progress] protected-scan complete: scanned={scanned}", flush=True)
+
+    roots: list[str] = []
+    for obj_id, (name, is_folder) in objects.items():
+        if not is_folder:
+            continue
+        if _normalize_name(name) in protected_names:
+            roots.append(obj_id)
+
+    protected_ids: set[str] = set()
+    q: deque[str] = deque(roots)
+    while q:
+        current = q.popleft()
+        if current in protected_ids:
+            continue
+        protected_ids.add(current)
+        for child in children.get(current, []):
+            q.append(child)
+    return protected_ids, len(roots)
+
+
 def main() -> None:
     args = parse_args()
     load_dotenv_if_present()
 
     mapping_rows = _load_mapping_rows(Path(args.mapping))
     unresolved_ids = _load_unresolved_ids(Path(args.unresolved))
+    protected_name_set = _load_protected_names(args)
 
     protected_ids = set(unresolved_ids)
     exclusion_rows: list[dict[str, str]] = [
         {"google_object_id": gid, "reason": "unresolved_failed_item"} for gid in sorted(unresolved_ids)
     ]
 
-    colored_rows: list[dict[str, str]] = []
-    if args.include_colored_protection:
-        cfg = load_real_integration_config()
-        source = GoogleDriveApiClient(cfg)
-        objects, children = _crawl_drive_tree(source)
-        colored_protected_ids, colored_rows = _collect_colored_subtree(objects, children)
-        for gid in sorted(colored_protected_ids):
+    protected_subtree_ids, protected_root_count = _collect_protected_subtree_ids(protected_name_set)
+    if protected_subtree_ids:
+        for gid in sorted(protected_subtree_ids):
             if gid not in protected_ids:
-                exclusion_rows.append({"google_object_id": gid, "reason": "colored_folder_protected"})
-        protected_ids.update(colored_protected_ids)
+                exclusion_rows.append({"google_object_id": gid, "reason": "manual_protected_folder"})
+        protected_ids.update(protected_subtree_ids)
 
     candidates: list[dict[str, str]] = []
     for gid, row in mapping_rows.items():
@@ -176,15 +180,14 @@ def main() -> None:
         candidates,
     )
     _write_csv(Path(args.out_exclusions), ["google_object_id", "reason"], exclusion_rows)
-    _write_csv(
-        Path(args.out_colored),
-        ["google_folder_id", "google_folder_name", "google_folder_color_rgb", "google_folder_url"],
-        colored_rows,
-    )
 
     print(f"delete candidates written: {args.out_candidates} ({len(candidates)} rows)")
     print(f"delete exclusions written: {args.out_exclusions} ({len(exclusion_rows)} rows)")
-    print(f"colored folders written: {args.out_colored} ({len(colored_rows)} rows)")
+    if protected_name_set:
+        print(
+            f"manual protected names matched={protected_root_count} "
+            f"protected_subtree_ids={len(protected_subtree_ids)}"
+        )
 
 
 if __name__ == "__main__":
