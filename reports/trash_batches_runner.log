@@ -1,7 +1,391 @@
-<stdin>:12: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-[2026-03-08T14:11:44.578935] runner start total=97428 batch_size=500 start_offset=500
-<stdin>:21: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-[2026-03-08T14:11:44.579168] running offset=500
-Batch complete offset=500 end=1000 success=497 failed=3 log=reports/delete_batches_log.csv
-<stdin>:21: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
-[2026-03-08T14:21:00.027093] running offset=1000
+nohup: ignoring input
+[run] offset=0
+Batch complete offset=0 end=500 success=496 failed=4 log=reports/delete_batches_log.csv
+[run] offset=500
+Batch complete offset=500 end=1000 success=498 failed=2 log=reports/delete_batches_log.csv
+[run] offset=1000
+Batch complete offset=1000 end=1500 success=386 failed=114 log=reports/delete_batches_log.csv
+[run] offset=1500
+Batch complete offset=1500 end=2000 success=369 failed=131 log=reports/delete_batches_log.csv
+[run] offset=2000
+Batch complete offset=2000 end=2500 success=324 failed=176 log=reports/delete_batches_log.csv
+[run] offset=2500
+Batch complete offset=2500 end=3000 success=401 failed=99 log=reports/delete_batches_log.csv
+[run] offset=3000
+Batch complete offset=3000 end=3500 success=439 failed=61 log=reports/delete_batches_log.csv
+[run] offset=3500
+Batch complete offset=3500 end=4000 success=409 failed=91 log=reports/delete_batches_log.csv
+[run] offset=4000
+Batch complete offset=4000 end=4500 success=390 failed=110 log=reports/delete_batches_log.csv
+[run] offset=4500
+Batch complete offset=4500 end=4955 success=421 failed=34 log=reports/delete_batches_log.csv
+[run] offset=5000
+No rows selected for this batch.
+[run] offset=5500
+No rows selected for this batch.
+[run] offset=6000
+No rows selected for this batch.
+[run] offset=6500
+No rows selected for this batch.
+[run] offset=7000
+No rows selected for this batch.
+[run] offset=7500
+No rows selected for this batch.
+[run] offset=8000
+No rows selected for this batch.
+[run] offset=8500
+No rows selected for this batch.
+[run] offset=9000
+No rows selected for this batch.
+[run] offset=9500
+No rows selected for this batch.
+[run] offset=10000
+No rows selected for this batch.
+[run] offset=10500
+No rows selected for this batch.
+[run] offset=11000
+No rows selected for this batch.
+[run] offset=11500
+No rows selected for this batch.
+[run] offset=12000
+No rows selected for this batch.
+[run] offset=12500
+No rows selected for this batch.
+[run] offset=13000
+No rows selected for this batch.
+[run] offset=13500
+No rows selected for this batch.
+[run] offset=14000
+No rows selected for this batch.
+[run] offset=14500
+No rows selected for this batch.
+[run] offset=15000
+No rows selected for this batch.
+[run] offset=15500
+No rows selected for this batch.
+[run] offset=16000
+No rows selected for this batch.
+[run] offset=16500
+No rows selected for this batch.
+[run] offset=17000
+No rows selected for this batch.
+[run] offset=17500
+No rows selected for this batch.
+[run] offset=18000
+No rows selected for this batch.
+[run] offset=18500
+No rows selected for this batch.
+[run] offset=19000
+No rows selected for this batch.
+[run] offset=19500
+No rows selected for this batch.
+[run] offset=20000
+No rows selected for this batch.
+[run] offset=20500
+No rows selected for this batch.
+[run] offset=21000
+No rows selected for this batch.
+[run] offset=21500
+No rows selected for this batch.
+[run] offset=22000
+No rows selected for this batch.
+[run] offset=22500
+No rows selected for this batch.
+[run] offset=23000
+No rows selected for this batch.
+[run] offset=23500
+No rows selected for this batch.
+[run] offset=24000
+No rows selected for this batch.
+[run] offset=24500
+No rows selected for this batch.
+[run] offset=25000
+No rows selected for this batch.
+[run] offset=25500
+No rows selected for this batch.
+[run] offset=26000
+No rows selected for this batch.
+[run] offset=26500
+No rows selected for this batch.
+[run] offset=27000
+No rows selected for this batch.
+[run] offset=27500
+No rows selected for this batch.
+[run] offset=28000
+No rows selected for this batch.
+[run] offset=28500
+No rows selected for this batch.
+[run] offset=29000
+No rows selected for this batch.
+[run] offset=29500
+No rows selected for this batch.
+[run] offset=30000
+No rows selected for this batch.
+[run] offset=30500
+No rows selected for this batch.
+[run] offset=31000
+No rows selected for this batch.
+[run] offset=31500
+No rows selected for this batch.
+[run] offset=32000
+No rows selected for this batch.
+[run] offset=32500
+No rows selected for this batch.
+[run] offset=33000
+No rows selected for this batch.
+[run] offset=33500
+No rows selected for this batch.
+[run] offset=34000
+No rows selected for this batch.
+[run] offset=34500
+No rows selected for this batch.
+[run] offset=35000
+No rows selected for this batch.
+[run] offset=35500
+No rows selected for this batch.
+[run] offset=36000
+No rows selected for this batch.
+[run] offset=36500
+No rows selected for this batch.
+[run] offset=37000
+No rows selected for this batch.
+[run] offset=37500
+No rows selected for this batch.
+[run] offset=38000
+No rows selected for this batch.
+[run] offset=38500
+No rows selected for this batch.
+[run] offset=39000
+No rows selected for this batch.
+[run] offset=39500
+No rows selected for this batch.
+[run] offset=40000
+No rows selected for this batch.
+[run] offset=40500
+No rows selected for this batch.
+[run] offset=41000
+No rows selected for this batch.
+[run] offset=41500
+No rows selected for this batch.
+[run] offset=42000
+No rows selected for this batch.
+[run] offset=42500
+No rows selected for this batch.
+[run] offset=43000
+No rows selected for this batch.
+[run] offset=43500
+No rows selected for this batch.
+[run] offset=44000
+No rows selected for this batch.
+[run] offset=44500
+No rows selected for this batch.
+[run] offset=45000
+No rows selected for this batch.
+[run] offset=45500
+No rows selected for this batch.
+[run] offset=46000
+No rows selected for this batch.
+[run] offset=46500
+No rows selected for this batch.
+[run] offset=47000
+No rows selected for this batch.
+[run] offset=47500
+No rows selected for this batch.
+[run] offset=48000
+No rows selected for this batch.
+[run] offset=48500
+No rows selected for this batch.
+[run] offset=49000
+No rows selected for this batch.
+[run] offset=49500
+No rows selected for this batch.
+[run] offset=50000
+No rows selected for this batch.
+[run] offset=50500
+No rows selected for this batch.
+[run] offset=51000
+No rows selected for this batch.
+[run] offset=51500
+No rows selected for this batch.
+[run] offset=52000
+No rows selected for this batch.
+[run] offset=52500
+No rows selected for this batch.
+[run] offset=53000
+No rows selected for this batch.
+[run] offset=53500
+No rows selected for this batch.
+[run] offset=54000
+No rows selected for this batch.
+[run] offset=54500
+No rows selected for this batch.
+[run] offset=55000
+No rows selected for this batch.
+[run] offset=55500
+No rows selected for this batch.
+[run] offset=56000
+No rows selected for this batch.
+[run] offset=56500
+No rows selected for this batch.
+[run] offset=57000
+No rows selected for this batch.
+[run] offset=57500
+No rows selected for this batch.
+[run] offset=58000
+No rows selected for this batch.
+[run] offset=58500
+No rows selected for this batch.
+[run] offset=59000
+No rows selected for this batch.
+[run] offset=59500
+No rows selected for this batch.
+[run] offset=60000
+No rows selected for this batch.
+[run] offset=60500
+No rows selected for this batch.
+[run] offset=61000
+No rows selected for this batch.
+[run] offset=61500
+No rows selected for this batch.
+[run] offset=62000
+No rows selected for this batch.
+[run] offset=62500
+No rows selected for this batch.
+[run] offset=63000
+No rows selected for this batch.
+[run] offset=63500
+No rows selected for this batch.
+[run] offset=64000
+No rows selected for this batch.
+[run] offset=64500
+No rows selected for this batch.
+[run] offset=65000
+No rows selected for this batch.
+[run] offset=65500
+No rows selected for this batch.
+[run] offset=66000
+No rows selected for this batch.
+[run] offset=66500
+No rows selected for this batch.
+[run] offset=67000
+No rows selected for this batch.
+[run] offset=67500
+No rows selected for this batch.
+[run] offset=68000
+No rows selected for this batch.
+[run] offset=68500
+No rows selected for this batch.
+[run] offset=69000
+No rows selected for this batch.
+[run] offset=69500
+No rows selected for this batch.
+[run] offset=70000
+No rows selected for this batch.
+[run] offset=70500
+No rows selected for this batch.
+[run] offset=71000
+No rows selected for this batch.
+[run] offset=71500
+No rows selected for this batch.
+[run] offset=72000
+No rows selected for this batch.
+[run] offset=72500
+No rows selected for this batch.
+[run] offset=73000
+No rows selected for this batch.
+[run] offset=73500
+No rows selected for this batch.
+[run] offset=74000
+No rows selected for this batch.
+[run] offset=74500
+No rows selected for this batch.
+[run] offset=75000
+No rows selected for this batch.
+[run] offset=75500
+No rows selected for this batch.
+[run] offset=76000
+No rows selected for this batch.
+[run] offset=76500
+No rows selected for this batch.
+[run] offset=77000
+No rows selected for this batch.
+[run] offset=77500
+No rows selected for this batch.
+[run] offset=78000
+No rows selected for this batch.
+[run] offset=78500
+No rows selected for this batch.
+[run] offset=79000
+No rows selected for this batch.
+[run] offset=79500
+No rows selected for this batch.
+[run] offset=80000
+No rows selected for this batch.
+[run] offset=80500
+No rows selected for this batch.
+[run] offset=81000
+No rows selected for this batch.
+[run] offset=81500
+No rows selected for this batch.
+[run] offset=82000
+No rows selected for this batch.
+[run] offset=82500
+No rows selected for this batch.
+[run] offset=83000
+No rows selected for this batch.
+[run] offset=83500
+No rows selected for this batch.
+[run] offset=84000
+No rows selected for this batch.
+[run] offset=84500
+No rows selected for this batch.
+[run] offset=85000
+No rows selected for this batch.
+[run] offset=85500
+No rows selected for this batch.
+[run] offset=86000
+No rows selected for this batch.
+[run] offset=86500
+No rows selected for this batch.
+[run] offset=87000
+No rows selected for this batch.
+[run] offset=87500
+No rows selected for this batch.
+[run] offset=88000
+No rows selected for this batch.
+[run] offset=88500
+No rows selected for this batch.
+[run] offset=89000
+No rows selected for this batch.
+[run] offset=89500
+No rows selected for this batch.
+[run] offset=90000
+No rows selected for this batch.
+[run] offset=90500
+No rows selected for this batch.
+[run] offset=91000
+No rows selected for this batch.
+[run] offset=91500
+No rows selected for this batch.
+[run] offset=92000
+No rows selected for this batch.
+[run] offset=92500
+No rows selected for this batch.
+[run] offset=93000
+No rows selected for this batch.
+[run] offset=93500
+No rows selected for this batch.
+[run] offset=94000
+No rows selected for this batch.
+[run] offset=94500
+No rows selected for this batch.
+[run] offset=95000
+No rows selected for this batch.
+[run] offset=95500
+No rows selected for this batch.
+[run] offset=96000
+No rows selected for this batch.
+[run] offset=96500
+No rows selected for this batch.
+[run] offset=97000
+No rows selected for this batch.
