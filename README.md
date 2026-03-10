@@ -95,6 +95,40 @@ Rows are appended after each folder/file is created:
   - `user`: require `LARK_USER_ACCESS_TOKEN`
   - `tenant`: require app credentials (or `LARK_ACCESS_TOKEN`)
 
+## Get Lark User Token (OAuth)
+
+If tenant mode is blocked by workspace policy, switch to user mode.
+
+1) Generate auth URL:
+
+```bash
+PYTHONPATH=src python3 -m migration.lark_user_oauth auth-url \
+  --redirect-uri "https://your-redirect-uri.example/callback"
+```
+
+2) Open the URL, approve access, copy `code` from callback URL.
+
+3) Exchange `code` for token:
+
+```bash
+PYTHONPATH=src python3 -m migration.lark_user_oauth exchange-code --code "<CODE>"
+```
+
+4) Put values into `.env`:
+
+```bash
+LARK_TOKEN_MODE=user
+LARK_USER_ACCESS_TOKEN=<value from response>
+LARK_USER_REFRESH_TOKEN=<value from response, if present>
+```
+
+5) Optional refresh later:
+
+```bash
+PYTHONPATH=src python3 -m migration.lark_user_oauth refresh-token \
+  --refresh-token "<LARK_USER_REFRESH_TOKEN>"
+```
+
 ## Post-Migration Cleanup (Google Drive)
 
 Use this flow only after sync summary is stable and unresolved failures are reviewed.
