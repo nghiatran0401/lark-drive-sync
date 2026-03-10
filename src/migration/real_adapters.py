@@ -14,6 +14,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from .config import (
+    fetch_lark_user_access_token_from_refresh,
     RealIntegrationConfig,
     fetch_google_access_token_from_refresh,
     fetch_lark_tenant_access_token,
@@ -428,15 +429,32 @@ class LarkApiClient:
         with self._lark_token_lock:
             app_id = self.cfg.lark_app_id
             app_secret = self.cfg.lark_app_secret
-            if not (app_id and app_secret):
-                raise AuthTokenError(
-                    "Lark token expired and app credentials are missing. "
-                    "Set LARK_APP_ID + LARK_APP_SECRET for auto-refresh."
-                )
-            try:
-                token = fetch_lark_tenant_access_token(self.cfg.lark_api_base_url, app_id, app_secret)
-            except ValueError as exc:
-                raise AuthTokenError(str(exc)) from exc
+            if self.cfg.lark_token_mode == "user":
+                refresh_token = self.cfg.lark_user_refresh_token
+                if not (app_id and app_secret and refresh_token):
+                    raise AuthTokenError(
+                        "Lark user token expired and refresh config is missing. "
+                        "Set LARK_APP_ID + LARK_APP_SECRET + LARK_USER_REFRESH_TOKEN."
+                    )
+                try:
+                    token = fetch_lark_user_access_token_from_refresh(
+                        self.cfg.lark_api_base_url,
+                        app_id,
+                        app_secret,
+                        refresh_token,
+                    )
+                except ValueError as exc:
+                    raise AuthTokenError(str(exc)) from exc
+            else:
+                if not (app_id and app_secret):
+                    raise AuthTokenError(
+                        "Lark token expired and app credentials are missing. "
+                        "Set LARK_APP_ID + LARK_APP_SECRET for auto-refresh."
+                    )
+                try:
+                    token = fetch_lark_tenant_access_token(self.cfg.lark_api_base_url, app_id, app_secret)
+                except ValueError as exc:
+                    raise AuthTokenError(str(exc)) from exc
             self._lark_access_token = token
             print("[progress] auth: lark token refreshed", flush=True)
             return token

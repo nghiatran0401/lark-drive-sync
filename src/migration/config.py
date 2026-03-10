@@ -36,6 +36,7 @@ class RealIntegrationConfig:
     google_client_secret: str
     google_refresh_token: str
     lark_access_token: str
+    lark_user_refresh_token: str
     lark_token_mode: str
     lark_app_id: str
     lark_app_secret: str
@@ -55,6 +56,7 @@ def load_real_integration_config() -> RealIntegrationConfig:
     )
     lark_app_id = os.getenv("LARK_APP_ID", "").strip()
     lark_app_secret = os.getenv("LARK_APP_SECRET", "").strip()
+    lark_user_refresh_token = os.getenv("LARK_USER_REFRESH_TOKEN", "").strip()
     token_mode = os.getenv("LARK_TOKEN_MODE", "auto").strip().lower()
     lark_access_token = _resolve_lark_access_token(lark_base, token_mode=token_mode)
     return RealIntegrationConfig(
@@ -66,6 +68,7 @@ def load_real_integration_config() -> RealIntegrationConfig:
         google_client_secret=google_client_secret,
         google_refresh_token=google_refresh_token,
         lark_access_token=lark_access_token,
+        lark_user_refresh_token=lark_user_refresh_token,
         lark_token_mode=token_mode,
         lark_app_id=lark_app_id,
         lark_app_secret=lark_app_secret,
@@ -202,4 +205,28 @@ def _fetch_tenant_token(lark_api_base_url: str, app_id: str, app_secret: str) ->
 
 def fetch_lark_tenant_access_token(lark_api_base_url: str, app_id: str, app_secret: str) -> str:
     return _fetch_tenant_token(lark_api_base_url, app_id, app_secret)
+
+
+def fetch_lark_user_access_token_from_refresh(
+    lark_api_base_url: str,
+    client_id: str,
+    client_secret: str,
+    refresh_token: str,
+) -> str:
+    url = f"{lark_api_base_url}/authen/v2/oauth/token"
+    payload = json.dumps(
+        {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret,
+        }
+    ).encode("utf-8")
+    req = Request(url=url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+    with urlopen(req, timeout=30) as resp:  # noqa: S310
+        body = json.loads(resp.read().decode("utf-8"))
+    token = (body.get("access_token") or "").strip()
+    if token:
+        return token
+    raise ValueError(f"Failed to obtain Lark user access token via refresh token. Response: {body}")
 
