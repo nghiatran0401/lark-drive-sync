@@ -1,0 +1,37 @@
+account_id,google_object_id,google_url,reason
+nghia-main-drive,1Hhw3KLE0_-2PSzhFYXD9jstfWdMZ2QTs,https://drive.google.com/file/d/1Hhw3KLE0_-2PSzhFYXD9jstfWdMZ2QTs/view?usp=drivesdk,zero_byte_source
+nghia-main-drive,1Tit3hh9DvDaG0Gd4CIkdqhAgX7Z3GL5x,https://drive.google.com/file/d/1Tit3hh9DvDaG0Gd4CIkdqhAgX7Z3GL5x/view?usp=drivesdk,TimeoutError:The read operation timed out
+nghia-main-drive,1TTNTzDVG-jt_IH64M2xTok1HLQOeauxB,https://drive.google.com/file/d/1TTNTzDVG-jt_IH64M2xTok1HLQOeauxB/view?usp=drivesdk,URLError:<urlopen error The write operation timed out>
+nghia-main-drive,1TgrDlv9DNPZ2gOFhaY8aum7MPHcAxg2l,https://drive.google.com/file/d/1TgrDlv9DNPZ2gOFhaY8aum7MPHcAxg2l/view?usp=drivesdk,URLError:<urlopen error The write operation timed out>
+nghia-main-drive,1TYgemUsiKTLG8NhbYvVUSrQfZji1Vcei,https://drive.google.com/file/d/1TYgemUsiKTLG8NhbYvVUSrQfZji1Vcei/view?usp=drivesdk,URLError:<urlopen error The write operation timed out>
+nghia-main-drive,1DXQ2XdvoEMok4Q_vo8teVM9epP9kzcvC,https://drive.google.com/file/d/1DXQ2XdvoEMok4Q_vo8teVM9epP9kzcvC/view?usp=drivesdk,zero_byte_source
+nghia-main-drive,1PsvxnBQNAR332SIG8iFmOerEC5budRpk,https://docs.google.com/spreadsheets/d/1PsvxnBQNAR332SIG8iFmOerEC5budRpk/edit?usp=drivesdk&ouid=114811042808991396276&rtpof=true&sd=true,zero_byte_source
+nghia-main-drive,1otH65dUasm5B3WJYrXxBpI11FVwjJrnB,https://docs.google.com/spreadsheets/d/1otH65dUasm5B3WJYrXxBpI11FVwjJrnB/edit?usp=drivesdk&ouid=114811042808991396276&rtpof=true&sd=true,HTTPError:HTTP Error 403: Forbidden
+nghia-main-drive,1otH65dUasm5B3WJYrXxBpI11FVwjJrnB,https://docs.google.com/spreadsheets/d/1otH65dUasm5B3WJYrXxBpI11FVwjJrnB/edit?usp=drivesdk&ouid=114811042808991396276&rtpof=true&sd=true,"RuntimeError:Google Drive API HTTP 403 GET https://www.googleapis.com/drive/v3/files/1otH65dUasm5B3WJYrXxBpI11FVwjJrnB?alt=media&supportsAllDrives=true: {
+  ""error"": {
+    ""code"": 403,
+    ""message"": ""This file has been identified as malware or spam and cannot be downloaded."",
+    ""errors"": [
+      {
+        ""message"": ""This file has been identified as malware or spam and cannot be downloaded."",
+        ""domain"": ""global"",
+        ""reason"": ""cannotDownloadAbusiveFile""
+      }
+    ]
+  }
+}"
+nghia-main-drive,1otH65dUasm5B3WJYrXxBpI11FVwjJrnB,https://docs.google.com/spreadsheets/d/1otH65dUasm5B3WJYrXxBpI11FVwjJrnB/edit?usp=drivesdk&ouid=114811042808991396276&rtpof=true&sd=true,google_abusive_file_blocked_download
+nghia-main-drive,1e8GU3yZVSCWDQ6hNwBfYrspSplseterS,https://drive.google.com/file/d/1e8GU3yZVSCWDQ6hNwBfYrspSplseterS/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=20260305151106624BA764732E77761995 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1EmFdobTBDkZjExd54IxJApo3HlPFgNOK,https://drive.google.com/file/d/1EmFdobTBDkZjExd54IxJApo3HlPFgNOK/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511088866542E0C7FF6763039 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,14n0oLDNJJmP1OOJG2nXjZjrQw0pkZ9JC,https://drive.google.com/file/d/14n0oLDNJJmP1OOJG2nXjZjrQw0pkZ9JC/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511178DAA423E9DE1AC75F7E2 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,18laCkB582UlGGq4y-dK2UXxhtmTpjpIx,https://drive.google.com/file/d/18laCkB582UlGGq4y-dK2UXxhtmTpjpIx/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511171F78DDA82FEA0A75D9B9 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1Hy-qXS-0swwY2ECX5bZF6HDpHXs7qEM1,https://drive.google.com/file/d/1Hy-qXS-0swwY2ECX5bZF6HDpHXs7qEM1/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511328866542E0C7FF6764379 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1d2lkoNIhPtrX9SnU3gYyqTIIwS3UtbZy,https://drive.google.com/file/d/1d2lkoNIhPtrX9SnU3gYyqTIIwS3UtbZy/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511361F78DDA82FEA0A75E688 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1vUjQrO68qeRoG1jtUeVws7pZuQ3hJGwH,https://drive.google.com/file/d/1vUjQrO68qeRoG1jtUeVws7pZuQ3hJGwH/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511421F78DDA82FEA0A75EBB1 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1W0YV3YdOEfq9mzomgBaMI49qITkTmM-G,https://drive.google.com/file/d/1W0YV3YdOEfq9mzomgBaMI49qITkTmM-G/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511478866542E0C7FF6765084 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1G0oA4b5UcBq8aFlFWmSzclvuaRlEu77j,https://drive.google.com/file/d/1G0oA4b5UcBq8aFlFWmSzclvuaRlEu77j/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603051511548866542E0C7FF676553A url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1F_9UxxKIAYO9fE228l0vxlSykNQwr85b,https://drive.google.com/file/d/1F_9UxxKIAYO9fE228l0vxlSykNQwr85b/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=2026030516123342FB0044599AE880B085 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1SGUwml1orF0Hp-EwR5gwN5Qvl0UV7noh,https://drive.google.com/file/d/1SGUwml1orF0Hp-EwR5gwN5Qvl0UV7noh/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=202603052346007A46A4A8467434BC7A5D url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,19g7ApAL1pjbMvHWQBhEzK2VNFmDvFBja,https://drive.google.com/file/d/19g7ApAL1pjbMvHWQBhEzK2VNFmDvFBja/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=20260305234603FA9D7B3361FFDCBF2E50 url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1fU_k6d2v_ROLikbkVDbSxmk-U-wPJ7Qp,https://drive.google.com/file/d/1fU_k6d2v_ROLikbkVDbSxmk-U-wPJ7Qp/view?usp=drivesdk,LarkApiError:Lark API error code=1061001 msg=unknown error. log_id=20260305234608219D15ED650472BB05CE url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all
+nghia-main-drive,1i_NPKR7QmvvZTrxdneFSm4wpMcZ1h7Dw,https://drive.google.com/file/d/1i_NPKR7QmvvZTrxdneFSm4wpMcZ1h7Dw/view?usp=drivesdk,LarkApiError:Lark API error code=1061004 msg=forbidden. log_id=2026030623224456921502A79C1C4200CD url=https://open.larksuite.com/open-apis/drive/v1/files/upload_all

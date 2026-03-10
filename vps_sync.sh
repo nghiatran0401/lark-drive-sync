@@ -11,9 +11,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="${ROOT_DIR}/.venv"
-LOG_DIR="${ROOT_DIR}/reports"
-RUN_LOG="${LOG_DIR}/run.log"
-PID_FILE="${ROOT_DIR}/.sync.pid"
+REPORT_DIR=""
+RUN_LOG=""
+MAPPING_OUT=""
+FAILED_OUT=""
+PID_FILE=""
 
 cmd="${1:-help}"
 concurrency="${2:-${SIMPLE_SYNC_CONCURRENCY:-2}}"
@@ -31,6 +33,28 @@ ensure_env_file() {
     echo "Create it first, then run again."
     exit 1
   fi
+}
+
+load_runtime_paths() {
+  ensure_env_file
+  set +u
+  # shellcheck disable=SC1091
+  source "${ROOT_DIR}/.env"
+  set -u
+
+  local raw_profile
+  raw_profile="${DRIVE_PROFILE:-${DRIVE_ACCOUNT_ID:-default-drive}}"
+  local slug
+  slug="$(printf "%s" "${raw_profile}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._-]+/-/g; s/^-+//; s/-+$//')"
+  if [[ -z "${slug}" ]]; then
+    slug="default-drive"
+  fi
+
+  REPORT_DIR="${ROOT_DIR}/reports/drives/${slug}"
+  RUN_LOG="${REPORT_DIR}/run.log"
+  MAPPING_OUT="${SIMPLE_SYNC_MAPPING_OUT:-${REPORT_DIR}/mappings.csv}"
+  FAILED_OUT="${SIMPLE_SYNC_FAILED_OUT:-${REPORT_DIR}/failed_items.csv}"
+  PID_FILE="${ROOT_DIR}/.sync-${slug}.pid"
 }
 
 validate_env_vars() {
@@ -71,9 +95,9 @@ validate_env_vars() {
 
 prepare() {
   require_cmd python3
-  ensure_env_file
+  load_runtime_paths
 
-  mkdir -p "${LOG_DIR}"
+  mkdir -p "${REPORT_DIR}"
 
   if [[ ! -d "${VENV_DIR}" ]]; then
     python3 -m venv "${VENV_DIR}"
@@ -101,9 +125,9 @@ is_running() {
 }
 
 start_sync() {
-  ensure_env_file
+  load_runtime_paths
   validate_env_vars
-  mkdir -p "${LOG_DIR}"
+  mkdir -p "${REPORT_DIR}"
 
   if is_running; then
     echo "Sync is already running (pid=$(cat "${PID_FILE}"))."
@@ -115,7 +139,7 @@ start_sync() {
 
   : > "${RUN_LOG}"
   nohup env LARK_TOKEN_MODE="${LARK_TOKEN_MODE:-auto}" PYTHONPATH=src \
-    python -m migration.cli --concurrency "${concurrency}" \
+    python -m migration.cli --concurrency "${concurrency}" --mapping-out "${MAPPING_OUT}" --failed-out "${FAILED_OUT}" \
     >> "${RUN_LOG}" 2>&1 &
 
   echo $! > "${PID_FILE}"
@@ -124,6 +148,7 @@ start_sync() {
 }
 
 stop_sync() {
+  load_runtime_paths
   if ! is_running; then
     echo "Sync is not running."
     rm -f "${PID_FILE}"
@@ -141,6 +166,7 @@ stop_sync() {
 }
 
 status_sync() {
+  load_runtime_paths
   if is_running; then
     local pid
     pid="$(cat "${PID_FILE}")"
@@ -149,16 +175,18 @@ status_sync() {
     echo "Not running"
   fi
 
-  if [[ -f "${ROOT_DIR}/reports/mappings.csv" ]]; then
-    echo "mappings_lines=$(wc -l < "${ROOT_DIR}/reports/mappings.csv" | tr -d ' ')"
+  if [[ -f "${MAPPING_OUT}" ]]; then
+    echo "mappings_lines=$(wc -l < "${MAPPING_OUT}" | tr -d ' ')"
   fi
-  if [[ -f "${ROOT_DIR}/reports/failed_items.csv" ]]; then
-    echo "failed_lines=$(wc -l < "${ROOT_DIR}/reports/failed_items.csv" | tr -d ' ')"
+  if [[ -f "${FAILED_OUT}" ]]; then
+    echo "failed_lines=$(wc -l < "${FAILED_OUT}" | tr -d ' ')"
   fi
+  echo "profile_report_dir=${REPORT_DIR}"
 }
 
 show_logs() {
-  mkdir -p "${LOG_DIR}"
+  load_runtime_paths
+  mkdir -p "${REPORT_DIR}"
   touch "${RUN_LOG}"
   tail -n 80 -f "${RUN_LOG}"
 }
@@ -175,7 +203,8 @@ Usage:
 Notes:
   - Run `prepare` once after cloning to VPS.
   - Keep credentials in `.env` at project root.
-  - `start` runs in background with nohup and writes `reports/run.log`.
+  - Set `DRIVE_PROFILE` (e.g. nuoiemmedia, sucmanh2000) to isolate runs.
+  - `start` runs in background with nohup and writes `reports/drives/<profile>/run.log`.
 EOF
 }
 

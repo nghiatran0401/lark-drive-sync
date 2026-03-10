@@ -8,6 +8,7 @@ from collections import defaultdict, deque
 from pathlib import Path
 
 from .config import load_dotenv_if_present, load_real_integration_config, load_single_account_from_env
+from .paths import default_report_file
 from .real_adapters import GoogleDriveApiClient
 
 
@@ -17,22 +18,22 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--mapping",
-        default=os.getenv("SIMPLE_SYNC_MAPPING_OUT", "reports/mappings.csv"),
+        default=os.getenv("SIMPLE_SYNC_MAPPING_OUT", default_report_file("mappings.csv")),
         help="Mappings CSV path",
     )
     parser.add_argument(
         "--unresolved",
-        default="reports/unresolved_failed_items.csv",
+        default=default_report_file("unresolved_failed_items.csv"),
         help="Unresolved failed items CSV path",
     )
     parser.add_argument(
         "--out-candidates",
-        default="reports/delete_candidates.csv",
+        default=default_report_file("delete_candidates.csv"),
         help="Output CSV for safe delete candidates",
     )
     parser.add_argument(
         "--out-exclusions",
-        default="reports/delete_exclusions.csv",
+        default=default_report_file("delete_exclusions.csv"),
         help="Output CSV for excluded IDs (currently unresolved failures only)",
     )
     parser.add_argument(
@@ -43,7 +44,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--protect-folder-names-file",
-        default="reports/protected_folder_names.txt",
+        default=default_report_file("protected_folder_names.txt"),
         help="Optional text file with one protected folder name per line.",
     )
     return parser.parse_args()

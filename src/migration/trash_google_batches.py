@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import load_dotenv_if_present, load_real_integration_config
+from .paths import default_report_file
 from .real_adapters import GoogleDriveApiClient
 
 
@@ -13,7 +14,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Trash Google Drive items in safe batches.")
     parser.add_argument(
         "--input",
-        default="reports/delete_candidates.csv",
+        default=default_report_file("delete_candidates.csv"),
         help="Delete candidates CSV path",
     )
     parser.add_argument(
@@ -36,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--out-log",
-        default="reports/delete_batches_log.csv",
+        default=default_report_file("delete_batches_log.csv"),
         help="Output CSV log path",
     )
     return parser.parse_args()

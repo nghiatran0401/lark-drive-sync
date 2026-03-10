@@ -10,6 +10,7 @@ from .config import (
     load_single_lark_root_folder_from_env,
     load_real_integration_config,
 )
+from .paths import default_report_file
 from .real_adapters import AuthTokenError, GoogleDriveApiClient, LarkApiClient
 from .simple_sync import FailedCsvWriter, MappingCsvWriter, SimpleSyncEngine
 
@@ -30,20 +31,20 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--mapping-out",
-        default=os.getenv("SIMPLE_SYNC_MAPPING_OUT", "reports/mappings.csv"),
+        default=os.getenv("SIMPLE_SYNC_MAPPING_OUT", default_report_file("mappings.csv")),
         help="Mapping CSV output path",
     )
     parser.add_argument(
         "--failed-out",
-        default=os.getenv("SIMPLE_SYNC_FAILED_OUT", "reports/failed_items.csv"),
+        default=os.getenv("SIMPLE_SYNC_FAILED_OUT", default_report_file("failed_items.csv")),
         help="Failed/skipped items CSV output path",
     )
     return parser.parse_args()
 
 
 def main() -> None:
-    args = parse_args()
     load_dotenv_if_present()
+    args = parse_args()
     account = load_single_account_from_env()
     lark_root_folder_id = load_single_lark_root_folder_from_env()
     cfg = load_real_integration_config()

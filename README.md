@@ -6,6 +6,7 @@ This repository provides a single-purpose sync tool:
 - Preserve folder structure under configured Lark roots
 - Upload files concurrently with pipelined workers
 - Write mapping CSV rows during sync
+- Keep migration artifacts separated per Google Drive profile
 
 ## Quick Start
 
@@ -13,7 +14,7 @@ This repository provides a single-purpose sync tool:
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
-drive-migrate --concurrency 16 --mapping-out reports/mappings.csv
+DRIVE_PROFILE=nuoiemmedia drive-migrate --concurrency 16
 ```
 
 ```
@@ -38,7 +39,27 @@ bash vps_sync.sh stop
 - `DRIVE_ROOT_FOLDER_ID`
 - `LARK_ROOT_FOLDER_ID`
 
-Update these three values each time to run a different drive migration.
+## Per-Drive Workspace Architecture
+
+- Common code remains in `src/` and shared scripts stay at root.
+- Each drive uses its own profile slug via `DRIVE_PROFILE` (recommended) or `DRIVE_ACCOUNT_ID`.
+- Default output paths are auto-isolated to:
+  - `reports/drives/<profile>/mappings.csv`
+  - `reports/drives/<profile>/failed_items.csv`
+  - `reports/drives/<profile>/run.log`
+- `vps_sync.sh` also uses profile-scoped PID files: `.sync-<profile>.pid`
+
+Example:
+
+```bash
+# Drive 1
+export DRIVE_PROFILE=nuoiemmedia
+bash vps_sync.sh start 8
+
+# Drive 2
+export DRIVE_PROFILE=sucmanh2000
+bash vps_sync.sh start 8
+```
 
 ## Optional Environment Variables
 
@@ -48,8 +69,9 @@ Update these three values each time to run a different drive migration.
 - `LARK_WEB_BASE_URL` (default: `https://larksuite.com`, set to your tenant domain)
 - `SIMPLE_SYNC_CONCURRENCY` (default: `8`)
 - `SIMPLE_SYNC_CHUNK_SIZE` (default: `4194304`)
-- `SIMPLE_SYNC_MAPPING_OUT` (default: `reports/mappings.csv`)
-- `SIMPLE_SYNC_FAILED_OUT` (default: `reports/failed_items.csv`)
+- `SIMPLE_SYNC_MAPPING_OUT` (default: `reports/drives/<profile>/mappings.csv`)
+- `SIMPLE_SYNC_FAILED_OUT` (default: `reports/drives/<profile>/failed_items.csv`)
+- `DRIVE_PROFILE` (default fallback: `DRIVE_ACCOUNT_ID`)
 
 ## Mapping CSV Format
 
@@ -83,21 +105,28 @@ Use this flow only after sync summary is stable and unresolved failures are revi
 python3 - <<'PY'
 import csv
 from pathlib import Path
+import os
+
+raw_profile = (os.getenv("DRIVE_PROFILE") or os.getenv("DRIVE_ACCOUNT_ID") or "default-drive").strip().lower()
+profile = "".join(c if c.isalnum() or c in "._-" else "-" for c in raw_profile).strip("-") or "default-drive"
+base = Path("reports") / "drives" / profile
+mapping = Path(os.getenv("SIMPLE_SYNC_MAPPING_OUT", str(base / "mappings.csv")))
+failed = Path(os.getenv("SIMPLE_SYNC_FAILED_OUT", str(base / "failed_items.csv")))
+unresolved = base / "unresolved_failed_items.csv"
 m=set()
-for r in csv.DictReader(Path("reports/mappings.csv").open("r", encoding="utf-8", newline="")):
+for r in csv.DictReader(mapping.open("r", encoding="utf-8", newline="")):
     gid=(r.get("google_object_id") or "").strip()
     if gid:
         m.add(gid)
 rows=[]
-for r in csv.DictReader(Path("reports/failed_items.csv").open("r", encoding="utf-8", newline="")):
+for r in csv.DictReader(failed.open("r", encoding="utf-8", newline="")):
     gid=(r.get("google_object_id") or "").strip()
     if gid and gid not in m:
         rows.append(r)
-out=Path("reports/unresolved_failed_items.csv")
-with out.open("w", encoding="utf-8", newline="") as f:
+with unresolved.open("w", encoding="utf-8", newline="") as f:
     w=csv.DictWriter(f, fieldnames=["account_id","google_object_id","google_url","reason"])
     w.writeheader(); w.writerows(rows)
-print("wrote", out, "rows", len(rows))
+print("wrote", unresolved, "rows", len(rows))
 PY
 ```
 
@@ -105,17 +134,17 @@ PY
 
 ```bash
 PYTHONPATH=src python3 -m migration.export_delete_candidates \
-  --mapping reports/mappings.csv \
-  --unresolved reports/unresolved_failed_items.csv \
-  --out-candidates reports/delete_candidates.csv \
-  --out-exclusions reports/delete_exclusions.csv
+  --mapping reports/drives/<profile>/mappings.csv \
+  --unresolved reports/drives/<profile>/unresolved_failed_items.csv \
+  --out-candidates reports/drives/<profile>/delete_candidates.csv \
+  --out-exclusions reports/drives/<profile>/delete_exclusions.csv
 ```
 
 3) Dry-run delete batch:
 
 ```bash
 PYTHONPATH=src python3 -m migration.trash_google_batches \
-  --input reports/delete_candidates.csv \
+  --input reports/drives/<profile>/delete_candidates.csv \
   --offset 0 \
   --batch-size 500 \
   --dry-run
@@ -125,20 +154,20 @@ PYTHONPATH=src python3 -m migration.trash_google_batches \
 
 ```bash
 PYTHONPATH=src python3 -m migration.verify_before_trash \
-  --input reports/delete_candidates.csv \
-  --verified-out reports/verified_ok.csv \
-  --failed-out reports/verification_failed.csv
+  --input reports/drives/<profile>/delete_candidates.csv \
+  --verified-out reports/drives/<profile>/verified_ok.csv \
+  --failed-out reports/drives/<profile>/verification_failed.csv
 ```
 
-If used, run trash batches against `reports/verified_ok.csv`.
+If used, run trash batches against `reports/drives/<profile>/verified_ok.csv`.
 
 5) Execute batch (move to Trash):
 
 ```bash
 PYTHONPATH=src python3 -m migration.trash_google_batches \
-  --input reports/verified_ok.csv \
+  --input reports/drives/<profile>/verified_ok.csv \
   --offset 0 \
   --batch-size 500
 ```
 
-6) Repeat with increasing `--offset` in phases. Keep `reports/delete_batches_log.csv` as the audit trail.
+6) Repeat with increasing `--offset` in phases. Keep `reports/drives/<profile>/delete_batches_log.csv` as the audit trail.

@@ -5,6 +5,7 @@ import csv
 from pathlib import Path
 
 from .config import load_dotenv_if_present, load_real_integration_config
+from .paths import default_report_file
 from .real_adapters import GoogleDriveApiClient, LarkApiClient
 
 
@@ -12,9 +13,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Verify mapped files against Lark metadata before trashing Google files."
     )
-    parser.add_argument("--input", default="reports/delete_candidates.csv", help="Delete candidates CSV")
-    parser.add_argument("--verified-out", default="reports/verified_ok.csv", help="Verified output CSV")
-    parser.add_argument("--failed-out", default="reports/verification_failed.csv", help="Failed output CSV")
+    parser.add_argument("--input", default=default_report_file("delete_candidates.csv"), help="Delete candidates CSV")
+    parser.add_argument("--verified-out", default=default_report_file("verified_ok.csv"), help="Verified output CSV")
+    parser.add_argument(
+        "--failed-out", default=default_report_file("verification_failed.csv"), help="Failed output CSV"
+    )
     parser.add_argument("--offset", type=int, default=0, help="Start offset for candidate processing")
     parser.add_argument("--limit", type=int, default=0, help="Process limit (0 = all)")
     parser.add_argument(

@@ -1,0 +1,25 @@
+[progress] discovery: scanned=1
+[progress] files: skipped_google_native=1
+[progress] files: skipped_zero_byte=1
+[progress] discovery: scanned=100
+[progress] discovery: scanned=200
+[progress] folder create error: drive_folder_id=1E6RxVDC6rW_QtTJn7UK_u9gEOgT87Jk7 error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=2026031016203251B92EC5A4F313B7F1CA url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=1-ZFhl3P1qRIfYJq1TbOXIWDx9RM9km4F error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=202603101620328C889EE39D8028E734D2 url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=1z1RPAqI5djD7d4xnW1nGConYWcm4V83q error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=20260310162032E47A51E118B241C08F25 url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=10PzIRNorn5l4GCmImwL6IToFHh3DEn_W error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=202603101620321E9746B89CBEFCAE442E url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=1-_vRBISM9lxDSzN0IVO-avppVC5_nF4l error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=20260310162032D5B934AC193D32E1B62E url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=1PTVj1zHNa1VOn0gXKRgZ5xGnirGppTtf error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=202603101620321E9746B89CBEFCAE448B url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] files: uploaded=0 failed=1
+[progress] files: uploaded=0 failed=10
+[progress] files: uploaded=0 failed=20
+[progress] files: uploaded=0 failed=30
+[progress] files: uploaded=0 failed=40
+[progress] files: uploaded=0 failed=50
+[progress] files: uploaded=0 failed=60
+[progress] files: uploaded=0 failed=70
+[progress] files: uploaded=0 failed=80
+[progress] files: uploaded=0 failed=90
+[progress] files: uploaded=0 failed=100
+[progress] folder create error: drive_folder_id=1xEkb3-xV113QQKemYBBif7RcS9rKlSp_ error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=20260310162033E47A51E118B241C08FF0 url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=14YIfTDSbeBQTcCotVow9TNOmccOVm9sO error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=20260310162033D5B934AC193D32E1B702 url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
+[progress] folder create error: drive_folder_id=1-8Ib_dwg76niVDOnyVgL5yASqU4kpq-H error=LarkApiError: Lark API error code=1061004 msg=forbidden. log_id=202603101620331E9746B89CBEFCAE44B0 url=https://open.larksuite.com/open-apis/drive/v1/files/create_folder
