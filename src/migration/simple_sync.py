@@ -152,6 +152,7 @@ class SimpleSyncEngine:
         mapping_writer: MappingCsvWriter,
         failed_writer: FailedCsvWriter | None = None,
         progress_hook: Callable[[str], None] | None = None,
+        bootstrap_folder_mappings: bool = True,
     ) -> None:
         self.drive_client = drive_client
         self.lark_client = lark_client
@@ -160,13 +161,19 @@ class SimpleSyncEngine:
         self.mapping_writer = mapping_writer
         self.failed_writer = failed_writer
         self.progress_hook = progress_hook
+        self.bootstrap_folder_mappings = bootstrap_folder_mappings
 
     async def sync_account(self, account: AccountConfig, root_lark_folder_id: str) -> SyncStats:
         folder_map: dict[str, str] = {account.root_folder_id: root_lark_folder_id}
-        existing_folders = self.mapping_writer.load_folder_map_for_account(account.account_id)
-        if existing_folders:
-            folder_map.update(existing_folders)
-            self._log(f"bootstrap: preloaded_folder_mappings={len(existing_folders)}")
+        if self.bootstrap_folder_mappings:
+            existing_folders = self.mapping_writer.load_folder_map_for_account(account.account_id)
+            # Never override the run's configured root mapping.
+            existing_folders.pop(account.root_folder_id, None)
+            if existing_folders:
+                folder_map.update(existing_folders)
+                self._log(f"bootstrap: preloaded_folder_mappings={len(existing_folders)}")
+        else:
+            self._log("bootstrap: folder mapping preload disabled")
         failed_folders: set[str] = set()
         discovered_folder_ids: set[str] = {account.root_folder_id}
         folder_queue: asyncio.Queue[DriveObject | None] = asyncio.Queue(maxsize=self.concurrency * 20)

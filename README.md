@@ -95,6 +95,49 @@ Rows are appended after each folder/file is created:
   - `user`: require `LARK_USER_ACCESS_TOKEN`
   - `tenant`: require app credentials (or `LARK_ACCESS_TOKEN`)
 
+## Top-Level Batch Mode (Recommended for Large Drives)
+
+To avoid splitting the same logical folder across multiple Lark roots, run one Google top-level folder at a time.
+
+1) Build batch plan from current root:
+
+```bash
+PYTHONPATH=src python3 -m migration.plan_top_level_batches
+```
+
+Output: `reports/drives/<profile>/top_level_batches.csv`
+
+2) Pick one `top_folder_id` with `remaining_files > 0`.
+
+3) Run that folder as one batch:
+
+```bash
+PYTHONPATH=src python3 -m migration.cli \
+  --drive-root-folder-id "<top_folder_id>" \
+  --no-folder-bootstrap \
+  --concurrency 4
+```
+
+Notes:
+- `--no-folder-bootstrap` is important when switching destination Lark roots.
+- This keeps continuation clean: each top-level folder can be completed as a unit.
+
+### Fully Automatic Batch Picking
+
+If you do not want to pass folder IDs manually, use:
+
+```bash
+PYTHONPATH=src python3 -m migration.cli --auto-next-top-folder --concurrency 4
+```
+
+This command will:
+- scan the current Google root
+- pick the next top-level folder with remaining unmigrated files
+- run sync only for that folder
+- skip stale folder bootstrap automatically for safer destination-root continuation
+
+`vps_sync.sh start` now enables this mode by default (`SIMPLE_SYNC_AUTO_BATCH=1`).
+
 ## Get Lark User Token (OAuth)
 
 If tenant mode is blocked by workspace policy, switch to user mode.

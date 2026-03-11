@@ -137,9 +137,14 @@ start_sync() {
   # shellcheck disable=SC1091
   source "${VENV_DIR}/bin/activate"
 
+  local auto_flag=""
+  if [[ "${SIMPLE_SYNC_AUTO_BATCH:-1}" == "1" ]]; then
+    auto_flag="--auto-next-top-folder"
+  fi
+
   : > "${RUN_LOG}"
   nohup env LARK_TOKEN_MODE="${LARK_TOKEN_MODE:-auto}" PYTHONPATH=src \
-    python -m migration.cli --concurrency "${concurrency}" --mapping-out "${MAPPING_OUT}" --failed-out "${FAILED_OUT}" \
+    python -m migration.cli --concurrency "${concurrency}" --mapping-out "${MAPPING_OUT}" --failed-out "${FAILED_OUT}" ${auto_flag} \
     >> "${RUN_LOG}" 2>&1 &
 
   echo $! > "${PID_FILE}"
@@ -205,6 +210,7 @@ Notes:
   - Keep credentials in `.env` at project root.
   - Set `DRIVE_PROFILE` (e.g. nuoiemmedia, sucmanh2000) to isolate runs.
   - `start` runs in background with nohup and writes `reports/drives/<profile>/run.log`.
+  - By default `start` auto-selects the next unfinished top-level folder (`SIMPLE_SYNC_AUTO_BATCH=1`).
 EOF
 }
 

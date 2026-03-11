@@ -213,6 +213,21 @@ def fetch_lark_user_access_token_from_refresh(
     client_secret: str,
     refresh_token: str,
 ) -> str:
+    access_token, _ = fetch_lark_user_tokens_from_refresh(
+        lark_api_base_url=lark_api_base_url,
+        client_id=client_id,
+        client_secret=client_secret,
+        refresh_token=refresh_token,
+    )
+    return access_token
+
+
+def fetch_lark_user_tokens_from_refresh(
+    lark_api_base_url: str,
+    client_id: str,
+    client_secret: str,
+    refresh_token: str,
+) -> tuple[str, str | None]:
     url = f"{lark_api_base_url}/authen/v2/oauth/token"
     payload = json.dumps(
         {
@@ -227,6 +242,7 @@ def fetch_lark_user_access_token_from_refresh(
         body = json.loads(resp.read().decode("utf-8"))
     token = (body.get("access_token") or "").strip()
     if token:
-        return token
+        next_refresh = (body.get("refresh_token") or "").strip() or None
+        return token, next_refresh
     raise ValueError(f"Failed to obtain Lark user access token via refresh token. Response: {body}")
 

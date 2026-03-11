@@ -8,13 +8,14 @@ import threading
 import time
 import zlib
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable, Iterable
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from .config import (
-    fetch_lark_user_access_token_from_refresh,
+    fetch_lark_user_tokens_from_refresh,
     RealIntegrationConfig,
     fetch_google_access_token_from_refresh,
     fetch_lark_tenant_access_token,
@@ -98,6 +99,10 @@ def _http_json(
                         "GOOGLE_CLIENT_SECRET + GOOGLE_REFRESH_TOKEN for auto-refresh."
                     ) from exc
                 if "larksuite.com" in url:
+                    if token_refresher is not None and not refreshed:
+                        auth_token = token_refresher()
+                        refreshed = True
+                        continue
                     raise AuthTokenError(
                         "Lark API returned 401 Unauthorized. "
                         "Refresh token settings (LARK_ACCESS_TOKEN or LARK_APP_ID/LARK_APP_SECRET) and re-run."
@@ -420,29 +425,62 @@ class LarkApiClient:
         self._multipart_lock = threading.Lock()
         self._lark_access_token = config.lark_access_token
         self._lark_token_lock = threading.Lock()
+        self._lark_user_refresh_token = config.lark_user_refresh_token
+        self._env_path = Path(os.getenv("SYNC_ENV_PATH", ".env"))
         # Large one-shot upload_all calls are more likely to timeout on unstable links.
         # Route larger files directly to multipart flow for better resilience.
         threshold_mb = int(os.getenv("LARK_MULTIPART_THRESHOLD_MB", "32"))
         self._multipart_threshold_bytes = max(1, threshold_mb) * 1024 * 1024
+
+    def _persist_user_tokens(self, access_token: str, refresh_token: str | None) -> None:
+        if os.getenv("PERSIST_LARK_USER_TOKENS", "1").strip().lower() in {"0", "false", "no"}:
+            return
+        if not self._env_path.exists():
+            return
+        lines = self._env_path.read_text(encoding="utf-8").splitlines()
+        updated: list[str] = []
+        saw_access = False
+        saw_refresh = False
+        for line in lines:
+            if line.startswith("LARK_USER_ACCESS_TOKEN="):
+                updated.append(f"LARK_USER_ACCESS_TOKEN={access_token}")
+                saw_access = True
+                continue
+            if line.startswith("LARK_USER_REFRESH_TOKEN="):
+                if refresh_token:
+                    updated.append(f"LARK_USER_REFRESH_TOKEN={refresh_token}")
+                else:
+                    updated.append(line)
+                saw_refresh = True
+                continue
+            updated.append(line)
+        if not saw_access:
+            updated.append(f"LARK_USER_ACCESS_TOKEN={access_token}")
+        if refresh_token and not saw_refresh:
+            updated.append(f"LARK_USER_REFRESH_TOKEN={refresh_token}")
+        self._env_path.write_text("\n".join(updated) + "\n", encoding="utf-8")
 
     def _refresh_lark_access_token(self) -> str:
         with self._lark_token_lock:
             app_id = self.cfg.lark_app_id
             app_secret = self.cfg.lark_app_secret
             if self.cfg.lark_token_mode == "user":
-                refresh_token = self.cfg.lark_user_refresh_token
+                refresh_token = self._lark_user_refresh_token
                 if not (app_id and app_secret and refresh_token):
                     raise AuthTokenError(
                         "Lark user token expired and refresh config is missing. "
                         "Set LARK_APP_ID + LARK_APP_SECRET + LARK_USER_REFRESH_TOKEN."
                     )
                 try:
-                    token = fetch_lark_user_access_token_from_refresh(
+                    token, next_refresh_token = fetch_lark_user_tokens_from_refresh(
                         self.cfg.lark_api_base_url,
                         app_id,
                         app_secret,
                         refresh_token,
                     )
+                    if next_refresh_token:
+                        self._lark_user_refresh_token = next_refresh_token
+                    self._persist_user_tokens(token, next_refresh_token)
                 except ValueError as exc:
                     raise AuthTokenError(str(exc)) from exc
             else:
@@ -557,6 +595,14 @@ class LarkApiClient:
             "parent_type": "explorer",
             "parent_node": parent_lark_folder_id,
         }
+        def _should_try_fallback(exc: Exception) -> bool:
+            if isinstance(exc, LarkApiError):
+                return exc.code == 1061002
+            if isinstance(exc, HTTPError):
+                return exc.code == 400
+            text = f"{type(exc).__name__}: {exc}"
+            return "HTTP 400" in text and "/drive/v1/files/upload_all" in text
+
         try:
             result = _http_multipart(
                 url=url,
@@ -568,8 +614,8 @@ class LarkApiClient:
                 content_type=content_type or "application/octet-stream",
                 token_refresher=self._refresh_lark_access_token,
             )
-        except LarkApiError as exc:
-            if exc.code != 1061002:
+        except Exception as exc:  # noqa: BLE001
+            if not _should_try_fallback(exc):
                 raise
             # Fallback 1: stricter tenants that expect parent_token.
             try:
@@ -587,8 +633,8 @@ class LarkApiClient:
                     content_type=content_type or "application/octet-stream",
                     token_refresher=self._refresh_lark_access_token,
                 )
-            except LarkApiError as exc2:
-                if exc2.code != 1061002:
+            except Exception as exc2:  # noqa: BLE001
+                if not _should_try_fallback(exc2):
                     raise
                 # Fallback 2: multipart block upload flow for files rejected by upload_all.
                 result = self._multipart_upload_file(
@@ -690,6 +736,59 @@ class LarkApiClient:
         if last_exc is not None:
             raise last_exc
         raise RuntimeError(f"Unable to fetch Lark metadata for file token: {file_token}")
+
+    def list_folder_children(self, folder_token: str, *, page_size: int = 200) -> list[dict]:
+        children: list[dict] = []
+        page_token = ""
+        while True:
+            params = [f"page_size={page_size}"]
+            if page_token:
+                params.append(f"page_token={page_token}")
+            query = "&".join(params)
+            url = f"{self.cfg.lark_api_base_url}/drive/explorer/v2/folder/{folder_token}/children?{query}"
+            payload = _http_json(
+                "GET",
+                url,
+                self._lark_access_token,
+                token_refresher=self._refresh_lark_access_token,
+            )
+            data = payload.get("data") or {}
+            items = data.get("children") or data.get("items") or data.get("files") or []
+            if isinstance(items, dict):
+                children.extend(items.values())
+            elif isinstance(items, list):
+                children.extend(items)
+            page_token = str(data.get("next_page_token") or "").strip()
+            has_more = bool(data.get("has_more")) or bool(page_token)
+            if not has_more:
+                break
+        return children
+
+    def delete_drive_node(self, token: str, *, node_type: str | None = None) -> None:
+        query = ""
+        if node_type:
+            query = f"?type={node_type}"
+        urls = [
+            f"{self.cfg.lark_api_base_url}/drive/v1/files/{token}{query}",
+            f"{self.cfg.lark_api_base_url}/drive/explorer/v2/file/{token}",
+            f"{self.cfg.lark_api_base_url}/drive/explorer/v2/folder/{token}",
+        ]
+        last_exc: Exception | None = None
+        for url in urls:
+            try:
+                _http_json(
+                    "DELETE",
+                    url,
+                    self._lark_access_token,
+                    token_refresher=self._refresh_lark_access_token,
+                )
+                return
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                continue
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError(f"Unable to delete Lark drive node: {token}")
 
 def _parse_rfc3339(value: str | None) -> datetime:
     if not value:
