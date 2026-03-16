@@ -7,6 +7,7 @@ import random
 import threading
 import time
 import zlib
+from http.client import RemoteDisconnected
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Iterable
@@ -131,7 +132,7 @@ def _http_json(
             elif attempt >= retries or exc.code not in {408, 429, 500, 502, 503, 504}:
                 details = _read_http_error_body(exc)
                 raise RuntimeError(f"Lark/Drive API HTTP {exc.code} {method} {url}: {details}") from exc
-        except URLError:
+        except (URLError, RemoteDisconnected):
             if attempt >= retries:
                 raise
         attempt += 1
@@ -239,7 +240,7 @@ def _http_multipart(
             elif attempt >= retries or exc.code not in {408, 429, 500, 502, 503, 504}:
                 details = _read_http_error_body(exc)
                 raise RuntimeError(f"Lark API HTTP {exc.code} POST {url}: {details}") from exc
-        except URLError:
+        except (URLError, RemoteDisconnected):
             if attempt >= retries:
                 raise
         attempt += 1
